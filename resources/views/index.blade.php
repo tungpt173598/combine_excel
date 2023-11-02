@@ -16,6 +16,16 @@
     </head>
     <body>
         <div>
+            @if(!empty(session('errors')))
+                @foreach(session('errors')->getBag('default')->all() as $key => $error)
+                    <div>{{ $key }}: {{ $error }}</div>
+                    @if(str_starts_with($key, 'line'))
+                        <div>-----------------------</div>
+                    @endif
+                @endforeach
+            @endif
+        </div>
+        <div>
             <form id="file" method="POST" action="{{ route('merge') }}" enctype="multipart/form-data">
                 @csrf
                 <div>

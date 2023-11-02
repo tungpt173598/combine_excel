@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Cấu hình tùy chỉnh của PHP
-COPY php.ini /usr/local/etc/php/conf.d/custom.ini
+COPY php.ini /usr/local/etc/php/
 
 # Thư mục làm việc mặc định của ứng dụng
 WORKDIR /var/www/html
