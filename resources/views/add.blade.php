@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>Gộp</title>
+        <title>Thêm cột</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -26,20 +26,20 @@
             @endif
         </div>
         <div>
-            <form id="file" method="POST" action="{{ route('merge') }}" enctype="multipart/form-data">
+            <form id="file" method="POST" action="{{ route('add-file') }}" enctype="multipart/form-data">
                 @csrf
                 <div>
                     <label for="folder">Upload folder ở đây</label>
                     <input id="folder" type="file" name="folder">
                 </div>
-                <button type="submit" id="submit" style="background-color: pink; border: 1px solid">Gộp File</button>
+                <button type="submit" id="submit" style="background-color: pink; border: 1px solid">Thêm cột tên</button>
             </form>
         </div>
         <div style="margin-top: 30px">
             <button onclick="window.location.href='/check'" style="border: 1px solid; background-color: yellow">Kiểm tra</button>
         </div>
         <div style="margin-top: 30px">
-            <button onclick="window.location.href='/add'" style="border: 1px solid; background-color: yellow">Thêm cột</button>
+            <button onclick="window.location.href='/'" style="border: 1px solid; background-color: yellow">Gộp File</button>
         </div>
     </body>
 </html>
