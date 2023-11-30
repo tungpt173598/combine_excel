@@ -29,15 +29,22 @@ class ExcelController extends Controller
         $file = $request->file('folder');
         $zip->open($file->getRealPath());
         $fileExp = $zip->statIndex(0)['name'];
-        $folderName = explode('/', $fileExp)[0];
         $destination = storage_path('excels');
         if (!\File::exists($destination)) {
             \File::makeDirectory($destination, 0755, true);
         }
         $zip->extractTo($destination);
         $zip->close();
-        $excels = Storage::disk('local')->allFiles($folderName);
-        $results = [];
+        if (str_contains($fileExp, '/')) {
+            $folderName = explode('/', $fileExp)[0];
+            $excels = Storage::disk('local')->allFiles($folderName);
+        } else {
+            $folderName = explode('.', $file->getClientOriginalName())[0];
+            $excels = Storage::disk('local')->allFiles();
+        }
+        $results = [
+            ['STT', 'UID', 'phone', 'email', 'name', 'gender', 'country', 'group_name']
+        ];
         $error = [];
         foreach ($excels as $key => $excel) {
             try {
@@ -45,9 +52,7 @@ class ExcelController extends Controller
                 $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($inputFileName);
                 $spreadsheet  = $spreadsheet->getActiveSheet();
                 $data = $spreadsheet->toArray();
-                if ($key != 0) {
-                    unset($data[0]);
-                }
+                unset($data[0]);
                 $results = array_merge($results, $data);
                 unset($spreadsheet, $data);
             } catch (\Exception $exception) {
@@ -70,6 +75,8 @@ class ExcelController extends Controller
 
     public function addFile(Request $request)
     {
+        $folder = new Filesystem;
+        $folder->cleanDirectory(storage_path('add'));
         $zip = new ZipArchive();
         $file = $request->file('folder');
         $zip->open($file->getRealPath());
@@ -81,31 +88,48 @@ class ExcelController extends Controller
         }
         $zip->extractTo($destination);
         $zip->close();
-        $excels = Storage::disk('add')->allFiles($folderName);
-        foreach ($excels as $key => $excel) {
+        if (str_contains($fileExp, '/')) {
+            $folderName = explode('/', $fileExp)[0];
+            $excels = Storage::disk('add')->allFiles($folderName);
+        } else {
+            $folderName = explode('.', $file->getClientOriginalName())[0];
+            $excels = Storage::disk('add')->allFiles();
+        }
+        foreach ($excels as $excel) {
             $inputFileName = storage_path('add/' . $excel);
             $spreadsheet = IOFactory::load($inputFileName);
             $spreadsheet1  = $spreadsheet->getActiveSheet();
             $rows = $spreadsheet1->getHighestRow();
             $fileName1 = explode('/', $excel);
+            $fileName2 = end($fileName1);
+            $fileName3 = explode('.', $fileName2)[0];
             for ($i = 2; $i <= $rows; $i++) {
-                $spreadsheet1->setCellValue('H' . $i, end($fileName1));
+                if (!empty($spreadsheet1->getCell('A' . $i)->getValue())) {
+                    $spreadsheet1->setCellValue('H' . $i, $fileName3);
+                    $name = $spreadsheet1->getCell('E' . $i)->getValue();
+                    if (empty($name)) {
+                        $spreadsheet1->setCellValue('E' . $i, 'KH');
+                    }
+                }
             }
             $fileName = explode('.', $excel);
-            $writer = IOFactory::createWriter($spreadsheet, ucfirst(end($fileName)));
+            $writer = IOFactory::createWriter($spreadsheet, ucfirst(strtolower(end($fileName))));
             $writer->save($inputFileName);
         }
         $zip2 = new ZipArchive();
         $zipName = $folderName . '.zip';
         if ($zip2->open(public_path('storage/' . $zipName), ZipArchive::CREATE) === TRUE)
         {
-            $files = File::files(storage_path('add/' . $folderName));
+            if (str_contains($fileExp, '/')) {
+                $files = File::files(storage_path('add/' . $folderName));
+            } else {
+                $files = File::files(storage_path('add'));
+            }
             foreach ($files as $value) {
                 $zip2->addFile($value, basename($value));
             }
             $zip2->close();
         }
-        $folder = new Filesystem;
         $folder->cleanDirectory(storage_path('add'));
         return response()->download(public_path('storage/' . $zipName), $zipName)->deleteFileAfterSend();
     }
@@ -134,6 +158,7 @@ class ExcelController extends Controller
             try {
                 $inputFileName = storage_path('excels/' . $excel);
                 $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($inputFileName);
+                $spreadsheet  = $spreadsheet->getActiveSheet()->toArray();
             } catch (\Exception $exception) {
                 $message = explode('->', $exception->getMessage())[0];
                 $error[] = [
