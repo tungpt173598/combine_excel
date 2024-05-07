@@ -41,5 +41,8 @@
         <div style="margin-top: 30px">
             <button onclick="window.location.href='/add'" style="border: 1px solid; background-color: yellow">Thêm cột</button>
         </div>
+        <div style="margin-top: 30px">
+            <button onclick="window.location.href='/split'" style="border: 1px solid; background-color: yellow">Tách file</button>
+        </div>
     </body>
 </html>

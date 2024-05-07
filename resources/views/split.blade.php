@@ -26,13 +26,13 @@
             @endif
         </div>
         <div>
-            <form id="file" method="POST" action="{{ route('add-file') }}" enctype="multipart/form-data">
+            <form id="file" method="POST" action="{{ route('split-file') }}" enctype="multipart/form-data">
                 @csrf
                 <div>
-                    <label for="folder">Upload folder ở đây</label>
+                    <label for="folder">Upload file ở đây</label>
                     <input id="folder" type="file" name="folder">
                 </div>
-                <button type="submit" id="submit" style="background-color: pink; border: 1px solid">Thêm cột tên</button>
+                <button type="submit" id="submit" style="background-color: pink; border: 1px solid">Tách</button>
             </form>
         </div>
         <div style="margin-top: 30px">
@@ -42,7 +42,7 @@
             <button onclick="window.location.href='/'" style="border: 1px solid; background-color: yellow">Gộp File</button>
         </div>
         <div style="margin-top: 30px">
-            <button onclick="window.location.href='/split'" style="border: 1px solid; background-color: yellow">Tách File</button>
+            <button onclick="window.location.href='/add'" style="border: 1px solid; background-color: yellow">Thêm cột</button>
         </div>
     </body>
 </html>
