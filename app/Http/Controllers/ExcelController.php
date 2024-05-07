@@ -33,6 +33,8 @@ class ExcelController extends Controller
         if (!\File::exists($destination)) {
             \File::makeDirectory($destination, 0755, true);
         }
+        $file = new Filesystem;
+        $file->cleanDirectory(storage_path('excels'));
         $zip->extractTo($destination);
         $zip->close();
         if (str_contains($fileExp, '/')) {
@@ -173,5 +175,41 @@ class ExcelController extends Controller
             return redirect()->back()->with(['success' => 'Không có file lỗi']);
         }
         return redirect()->back()->withErrors($error);
+    }
+
+    public function getSplit()
+    {
+        return view('split');
+    }
+
+    public function splitFile(Request $request)
+    {
+        $file = $request->file('folder');
+        $fileName = explode('.', $file->getClientOriginalName())[0];
+        $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($file->getRealPath());
+        $spreadsheet  = $spreadsheet->getActiveSheet()->toArray();
+        $lines = array_chunk($spreadsheet, 1000);
+        $count = count($lines);
+        if (count(end($lines)) < 500) {
+            $lines[$count -2] = array_merge($lines[$count -2], $lines[$count -1]);
+            unset($lines[$count - 1]);
+        }
+        foreach ($lines as $key => $value) {
+            \Excel::store(new Excel($value), 'split/' . $key + 1 . '.xlsx');
+        }
+        $zip = new ZipArchive();
+        $zipName = $fileName . '.zip';
+        if ($zip->open(public_path('storage/' . $zipName), ZipArchive::CREATE) === TRUE)
+        {
+            $files = File::files(storage_path('excels/split'));
+            foreach ($files as $value) {
+                $zip->addFile($value, basename($value));
+            }
+            $zip->close();
+        }
+        $file = new Filesystem;
+        $file->cleanDirectory(storage_path('excels'));
+        return response()->download(public_path('storage/' . $zipName), $zipName)->deleteFileAfterSend();
+
     }
 }
